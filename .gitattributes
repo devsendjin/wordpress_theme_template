@@ -1,0 +1,20 @@
+*.js           text eol=crlf
+*.css          text eol=crlf
+*.scss         text eol=crlf
+*.json         text eol=crlf
+*.svg          text eol=crlf
+*.sql          text eol=crlf
+*.xml          text eol=crlf
+.htaccess      text eol=crlf
+*.txt          text eol=crlf
+*.php          text eol=crlf
+.thaccess      text eol=crlf
+.gitattributes text eol=crlf
+.gitconfig     text eol=crlf
+.gitignore     text eol=crlf
+
+*.gif  binary
+*.ico  binary
+*.jpg  binary
+*.jpeg binary
+*.png  binary

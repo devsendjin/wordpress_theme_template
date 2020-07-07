@@ -1,0 +1,98 @@
+html.fixed,
+html.fixed body {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: $poppins;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 400;
+  color: $colorBlack;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-color: #ffffff;
+
+  .main {
+    flex-grow: 1;
+  }
+}
+
+.lazyload-fade {
+  .lazyload, .lazyloading {
+    opacity: 0;
+    transition: opacity .6s;
+  }
+  .lazyloaded {
+    opacity: 1;
+    transition: opacity .6s;
+  }
+}
+
+%content-common {
+  margin: 0 auto;
+  padding-left: var(--side-padding);
+  padding-right: var(--side-padding);
+}
+
+.content {
+  max-width: calc(1450px + var(--side-padding) * 2);
+  @extend %content-common;
+}
+
+.block {
+  position: relative;
+  .block-title {
+    font-weight: 600;
+    font-size: 40px;
+    line-height: 56px;
+    letter-spacing: 1px;
+    color: $colorBlack;
+    margin-bottom: 60px;
+  }
+}
+
+.wp-content {
+  font-weight: normal;
+  color: $colorBlack;
+  h2 {
+    font-weight: 600;
+    font-size: 40px;
+    line-height: 56px;
+    margin-bottom: 60px;
+  }
+  p {
+    font-style: normal;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 32px;
+    letter-spacing: 0.1px;
+    margin: 0;
+    &:not(:first-of-type) {
+      margin-top: 45px;
+    }
+  }
+  strong, b {
+    font-weight: 500;
+  }
+}
+
+
+// svg
+.svg-block {
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}

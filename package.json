@@ -1,0 +1,40 @@
+{
+  "name": "Lamella_Trading",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "push": "git push origin master"
+  },
+  "keywords": [
+    "Lamella Trading",
+    "markup"
+  ],
+  "author": "Mart",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "babel-loader": "^8.1.0",
+    "browser-sync": "^2.26.7",
+    "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^7.0.1",
+    "gulp-babel": "^8.0.0",
+    "gulp-cheerio": "^1.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-csso": "^4.0.1",
+    "gulp-file-include": "^2.2.2",
+    "gulp-group-css-media-queries": "^1.2.2",
+    "gulp-if": "^3.0.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-sass": "^4.1.0",
+    "gulp-sass-bulk-import": "^1.0.1",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-svg-sprite": "^1.5.0",
+    "gulp-uglify": "^3.0.2"
+  },
+  "browserslist": [
+    "last 15 versions"
+  ],
+  "dependencies": {}
+}

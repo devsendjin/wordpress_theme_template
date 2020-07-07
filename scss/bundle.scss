@@ -1,0 +1,25 @@
+/*
+В ФАЙЛЕ ВАЖНА ПОСЛЕДОВАТЕЛЬНОСТЬ ПОДКЛЮЧЕНИЯ!!!
+ */
+
+
+@import "base/config";
+@import "base/mixins";
+
+
+//libs
+@import 'vendor/swiper.min';
+
+
+@import "base/reset";
+
+
+// @import "modules/sprite";
+@import "modules/buttons";
+@import "modules/forms";
+
+
+@import "application/common";
+@import "application/sections-common/*";
+
+@import "application/layouts/*";

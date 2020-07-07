@@ -1,0 +1,36 @@
+@keyframes underline-run-right{
+    0%{
+        background-size: 100% 100%;
+        background-position: right;
+    }
+    49%{
+        background-size: 0 100%;
+        background-position: right;
+    }
+    50%{
+        background-position: left;
+        background-size: 0 100%;
+    }
+    100%{
+        background-position: left;
+        background-size: 100% 100%;
+    }
+}
+@keyframes underline-run-left{
+    0%{
+        background-size: 100% 100%;
+        background-position: left;
+    }
+    49%{
+        background-size: 0 100%;
+        background-position: left;
+    }
+    50%{
+        background-position: right;
+        background-size: 0 100%;
+    }
+    100%{
+        background-position: right;
+        background-size: 100% 100%;
+    }
+}
