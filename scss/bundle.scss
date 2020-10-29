@@ -2,22 +2,20 @@
 В ФАЙЛЕ ВАЖНА ПОСЛЕДОВАТЕЛЬНОСТЬ ПОДКЛЮЧЕНИЯ!!!
  */
 
-
 @import "base/config";
 @import "base/mixins";
 
-
 //libs
-@import 'vendor/swiper.min';
-
+//https://selectric.js.org/
+//@import 'vendor/selectric';
+//https://fancyapps.com/fancybox/3/docs/
+//@import 'vendor/jquery.fancybox.min';
 
 @import "base/reset";
-
 
 // @import "modules/sprite";
 @import "modules/buttons";
 @import "modules/forms";
-
 
 @import "application/common";
 @import "application/sections-common/*";

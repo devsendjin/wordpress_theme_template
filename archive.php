@@ -1,14 +1,14 @@
 <?php
 
-SiteConfig::setPageId('default-archive');
+SiteConfig::setPageClasses('default-archive');
 
 get_header();
 
 the_post();
 ?>
 <main class="main">
-    <section class="block block-default">
-        <div class="content">
+    <section class="section-default">
+        <div class="container">
             <?php the_content(); ?>
         </div>
     </section>

@@ -1,115 +1,148 @@
-/*
- development (watch)
- gulp
- gulp --prod (minified && babel)
+const { src, dest, parallel, task, watch, lastRun } = require('gulp');
+const webpackStream = require('webpack-stream');
 
- production
- gulp build --prod (minified && babel)
-
- */
-
-const { src, dest, parallel, task, watch } = require('gulp');
-
-// utils
+//utils
 const sourcemaps = require('gulp-sourcemaps');
-const concat = require('gulp-concat');
 const gulpIf = require('gulp-if');
-const fileinclude = require('gulp-file-include');
+const plumber = require('gulp-plumber');
+const size = require('gulp-size');
+const remember = require('gulp-remember');
 
-// scss
-const sass = require('gulp-sass');
-const autoprefixer = require('gulp-autoprefixer');
+//scss
+const postcss = require('gulp-postcss');
+const inlineSvg = require('postcss-inline-svg'); // https://www.npmjs.com/package/postcss-inline-svg
+const sortMediaQueries = require('postcss-sort-media-queries');
+const scss = require('gulp-sass');
 const csso = require('gulp-csso');
-const gcmq = require('gulp-group-css-media-queries');
 const bulkSass = require('gulp-sass-bulk-import');
 
-// js
-const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
+//js
+const TerserPlugin = require('terser-webpack-plugin');
 
-// svg
+//svg
 const svgSprite = require('gulp-svg-sprite');
 const cheerio = require('gulp-cheerio');
 const replace = require('gulp-replace');
 
-// server
+//server
 const browserSync = require('browser-sync').create();
 
-const isProd = ['--p', '--prod', '--production'].some(item => process.argv.includes(item));
-const browserSyncEnabled = ['--s', '--serve', '--server'].some(item => process.argv.includes(item));
-const isDev = !isProd;
+const MODE = process.env.NODE_ENV || 'development';
+const isProduction = (process.env.NODE_ENV === 'production') || ['--p', '--prod', '--production'].some(item => process.argv.includes(item));
+const isDevelopment = (process.env.NODE_ENV === 'development') || ['--d', '--dev', '--development'].some(item => process.argv.includes(item));
+
+const serverEnabled = ['--s', '--serve', '--server'].some(item => process.argv.includes(item));
+const shouldOpenBrowser = serverEnabled && ['--o', '--open'].some(item => process.argv.includes(item));
 
 const server = () => {
 	browserSync.init({
-		proxy: "http://localhost/wordpress_cms/lamellatrading/",
-		files: ['./*.php', './includes/*.php', './sections/*.php'],
-		// server: {
-		// 	baseDir: "./",
-		// 	directory: false
-		// },
-		open: false,
+		proxy: "http://test-wp.loc/",
+		files: ['./**/*.php'],
+		open: shouldOpenBrowser,
 		notify: false
 	});
-};
+}
 
 const styles = () => {
 	return src('./scss/*.scss')
-		.pipe(gulpIf(isDev, sourcemaps.init()))
+		.pipe(plumber({
+			errorHandler: function (err) {
+				console.log('styles ', err.message);
+				this.end();
+			}
+		}))
+		.pipe(gulpIf(isDevelopment, sourcemaps.init()))
 		.pipe(bulkSass())
-		.pipe(sass())
-		.pipe(gcmq())
-		.pipe(autoprefixer())
+		.pipe(scss().on('error', scss.logError))
+		.pipe(postcss([
+			require('autoprefixer')(),
+			inlineSvg({ removeFill: true, removeStroke: true }),
+			sortMediaQueries({
+				sort: 'desktop-first'
+			})
+		]))
 		.pipe(csso({ restructure: true }))
-		.pipe(replace(/[\.\.\/]+images/gmi, '../images')) //заменяем пути к изображениям на правильные
-		.pipe(gulpIf(isDev, sourcemaps.write()))
+		// .pipe(replace(/[\.\.\/]+img/gmi, '../img')) //заменяем пути к изображениям на правильные
+		// .pipe(replace(/url\(["']?(?:\.?\.?\/?)*(?:\w*\/)*(\w+)(.svg|.gif|.png|.jpg|.jpeg)["']?\)/gmi, '"../img/$1$2"')) //заменяем пути к изображениям на правильные
+		.pipe(gulpIf(isDevelopment, sourcemaps.write()))
+		.pipe(gulpIf(isProduction, size({ showFiles: true, title: 'CSS' })))
 		.pipe(dest('./css'))
-		.pipe(gulpIf(browserSyncEnabled, browserSync.stream()));
-};
+		.pipe(gulpIf(serverEnabled, browserSync.stream()));
+}
 
-const jsCommon = () => {
-	return src([
-		'./js/src/vendor/jquery.min.js',
-		'./js/src/common/config.js',
-		'./js/src/common/lib.js',
-		// './js/src/vendor/js.cookie.min.js',
-		'./js/src/common/modals.js',
-		// './js/src/vendor/jquery.maskedinput.min.js',
-		'./js/src/vendor/swiper.min.js',
-		'./js/src/common/common.js',
-	])
-    .pipe(fileinclude({
-      prefix: '@@',
-      basepath: '@file'
-    }))
-		.pipe(gulpIf(isDev, sourcemaps.init()))
-		.pipe(gulpIf(isProd, babel({
-			presets: ['@babel/env']
-		})))
-		.pipe(gulpIf(isProd, uglify()))
-		.pipe(concat('bundle.js'))
-		.pipe(gulpIf(isDev, sourcemaps.write()))
+const scripts = () => {
+	const jsFiles = [
+		{ entry: 'bundle', path: './js/src/common/bundle.js' },
+		{ entry: 'page-main', path: './js/src/pages/page-main.js' },
+	];
+
+	return src(jsFiles.map(item => item.path), { since: lastRun(scripts) })
+		.pipe(remember('scripts'))
+		.pipe(plumber({
+			errorHandler: function (err) {
+				console.log('scripts ', err.message);
+				this.end();
+			}
+		}))
+		.pipe(webpackStream({
+			mode: MODE,
+			entry: jsFiles.reduce((accumulator, currentValue) => {
+				return Object.assign(accumulator, { [currentValue.entry]: currentValue.path })
+			}, {}),
+			output: {
+				filename: '[name].js',
+			},
+			devtool: false,
+			optimization: isProduction ? {
+				minimize: true,
+				minimizer: [
+					new TerserPlugin({
+						terserOptions: {
+							warnings: false,
+							compress: {
+								comparisons: false,
+							},
+							parse: {},
+							mangle: true,
+							output: {
+								comments: false,
+								ascii_only: true,
+							},
+						},
+						extractComments: false,
+						sourceMap: false,
+					}),
+				],
+				nodeEnv: MODE,
+				sideEffects: true,
+				concatenateModules: true,
+			} : {},
+			module: {
+				rules: [
+					{
+						test: /\.(js)$/,
+						exclude: /(node_modules)/,
+						loader: 'babel-loader',
+						query: {
+							presets: ['@babel/preset-env']
+						}
+					}
+				]
+			},
+		}))
+		.pipe(gulpIf(isProduction, size({ showFiles: true, title: 'JS' })))
 		.pipe(dest('./js/min'))
-		.pipe(gulpIf(browserSyncEnabled, browserSync.stream()));
-};
-
-const jsPages = () => {
-	return src(['./js/src/pages/*.js'])
-    .pipe(fileinclude({
-      prefix: '@@',
-      basepath: '@file'
-    }))
-	.pipe(gulpIf(isDev, sourcemaps.init()))
-	.pipe(gulpIf(isProd, babel({
-		presets: ['@babel/env']
-	})))
-	.pipe(gulpIf(isProd, uglify()))
-	.pipe(gulpIf(isDev, sourcemaps.write()))
-	.pipe(dest('./js/min'))
-	.pipe(gulpIf(browserSyncEnabled, browserSync.stream()));
-};
+		.pipe(gulpIf(serverEnabled, browserSync.stream()));
+}
 
 const createSvgSprite = () => {
 	return src('./images/svg/sprite/*.svg')
+		.pipe(plumber({
+			errorHandler: function (err) {
+				console.log(err.message);
+				this.end();
+			}
+		}))
 		// remove all fill, style and stroke declarations in out shapes
 		.pipe(cheerio({
 			run: function ($) {
@@ -139,17 +172,15 @@ const createSvgSprite = () => {
 };
 
 const watchTask = () => {
-	watch('./scss/**/*.scss', styles);
-	watch('./js/src/pages/*.js', jsPages);
-	watch(['./js/src/common/*.js', './js/src/vendor/*.js'], jsCommon);
-};
+	watch(['./js/src/common/*.js', './js/src/pages/*.js'], scripts);
+	watch('./scss/**/*.scss', styles)
+}
 
-const buildTask = parallel(styles, jsPages, jsCommon);
+const defaultTask = serverEnabled ? parallel(watchTask, server) : watchTask;
 
-const defaultTask = browserSyncEnabled ? parallel(watchTask, server) : watchTask;
-
-task('js', parallel(jsPages, jsCommon));
-task('css', styles);
-task('sprite', createSvgSprite);
-task('build', buildTask);
 task('default', defaultTask);
+task('server', server);
+task('sprite', createSvgSprite);
+task('css', styles);
+task('js', scripts);
+task('build', parallel(styles, scripts));

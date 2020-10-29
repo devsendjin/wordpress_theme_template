@@ -1,12 +1,12 @@
 <?php
 
-SiteConfig::setPageId('single-post');
+SiteConfig::setPageClasses('single-post');
 
 get_header();
 ?>
 <main class="main">
-	<div class="block">
-		<div class="content">
+	<div class="section">
+		<div class="container">
         <?php the_content(); ?>
 		</div>
 	</div>

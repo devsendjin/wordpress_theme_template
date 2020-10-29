@@ -1,14 +1,14 @@
 <?php
 
-SiteConfig::setPageId('page-default');
+SiteConfig::setPageClasses('page-default');
 
 get_header();
 
 the_post();
 ?>
-<main class="main page">
-    <section class="block">
-        <div class="content">
+<main class="main">
+    <section class="section">
+        <div class="container">
             <?php the_content(); ?>
         </div>
     </section>

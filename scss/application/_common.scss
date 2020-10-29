@@ -1,3 +1,9 @@
+:root {
+  --side-padding: 40px; // container padding left/right
+  --top-distance: 160px; // sections margin-top
+}
+
+
 html.fixed,
 html.fixed body {
   overflow: hidden;
@@ -11,13 +17,13 @@ html, body {
 }
 
 body {
-  font-family: $poppins;
+  font-family: $montserrat;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
   line-height: 1.6;
   font-weight: 400;
-  color: $colorBlack;
+  color: $black;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -39,32 +45,32 @@ body {
   }
 }
 
-%content-common {
+%container-common {
   margin: 0 auto;
   padding-left: var(--side-padding);
   padding-right: var(--side-padding);
 }
 
-.content {
+.container {
   max-width: calc(1450px + var(--side-padding) * 2);
-  @extend %content-common;
+  @extend %container-common;
 }
 
-.block {
+.section {
   position: relative;
-  .block-title {
+  .section-title {
     font-weight: 600;
     font-size: 40px;
     line-height: 56px;
     letter-spacing: 1px;
-    color: $colorBlack;
+    color: $black;
     margin-bottom: 60px;
   }
 }
 
 .wp-content {
   font-weight: normal;
-  color: $colorBlack;
+  color: $black;
   h2 {
     font-weight: 600;
     font-size: 40px;
@@ -84,15 +90,5 @@ body {
   }
   strong, b {
     font-weight: 500;
-  }
-}
-
-
-// svg
-.svg-block {
-  svg {
-    display: block;
-    width: 100%;
-    height: 100%;
   }
 }
