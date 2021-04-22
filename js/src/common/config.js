@@ -10,5 +10,5 @@ let scrollEventListenerThirdArgument = false;
     } catch(err) {}
 })();
 
-const MOBILE_MAX_WIDTH  = 768;
-const ANIMATION_STEP = 150;
+// const MOBILE_MAX_WIDTH  = 768;
+// const ANIMATION_STEP = 150;

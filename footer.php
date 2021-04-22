@@ -5,11 +5,6 @@
 </footer>
 <?php
 wp_footer();
-
-if (SiteConfig::isDevMode()) {
-    echo DebuggerPack::$debugbarRenderer->render();
-}
-
 ?>
 </body>
 </html>

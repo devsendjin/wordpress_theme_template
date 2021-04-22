@@ -1,3 +1,7 @@
+@mixin debug {
+  outline: 1px solid #ddd;
+}
+
 @mixin visually-hidden {
 	clip: rect(0 0 0 0);
 	clip-path: inset(50%);
@@ -9,18 +13,17 @@
 }
 
 @mixin unselectable {
-	-webkit-touch-callout: none; /* iOS Safari */
-	-webkit-user-select: none;   /* Chrome/Safari/Opera */
-	-khtml-user-select: none;    /* Konqueror */
-	-moz-user-select: none;      /* Firefox */
-	-ms-user-select: none;       /* Internet Explorer/Edge */
-	user-select: none;           /* Non-prefixed version, currently
-                                  not supported by any browser */
+	-webkit-touch-callout: none; // iOS Safari
+	-webkit-user-select: none;   // Chrome/Safari/Opera
+	-khtml-user-select: none;    // Konqueror
+	-moz-user-select: none;      // Firefox
+	-ms-user-select: none;       // Internet Explorer/Edge
+	user-select: none;           // Non-prefixed version
 }
 
-// =============================================================================
+// =========================================
 // placeholder with prefix
-// =============================================================================
+// =========================================
 @mixin placeholder {
 	&::-webkit-input-placeholder {
 		@content
@@ -39,38 +42,32 @@
 	}
 }
 
-// =============================================================================
+// =========================================
 // svg background
-// =============================================================================
+// =========================================
 @mixin svgbg($width: 0, $height: 0, $url: '') {
-	content: '';
-	display: block;
-	position: absolute;
-	width: $width;
-	height: $height;
-	background-image: url($url);
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
+  content: '';
+  display: block;
+  position: absolute;
+  width: $width;
+  height: $height;
+  background-image: url($url);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
-// =============================================================================
-// String Replace
-// =============================================================================
-@function str-replace($string, $search, $replace: "") {
-	$index: str-index($string, $search);
-
-	@if $index {
-		@return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
-	}
-
-	@return $string;
-}
-
-// =============================================================================
+// =========================================
 // Font Face
-// =============================================================================
-@mixin font-face($name, $path, $weight: null, $style: null, $exts: eot woff2 woff ttf svg otf) {
+// =========================================
+@mixin font-face(
+	$name,
+	$path,
+	$locals: null,
+	$weight: null,
+	$style: null,
+	$exts: eot woff2 woff ttf svg otf
+) {
 	$src: null;
 
 	$extmods: (
@@ -83,6 +80,12 @@
 		ttf: "truetype"
 	);
 
+	@if ($locals != null) {
+		@each $local in $locals {
+			$src: append($src, local(quote($local)), comma);
+		}
+	}
+
 	@each $ext in $exts {
 		$extmod: if(map-has-key($extmods, $ext), $ext + map-get($extmods, $ext), $ext);
 		$format: if(map-has-key($formats, $ext), map-get($formats, $ext), $ext);
@@ -93,22 +96,29 @@
 		font-family: quote($name);
 		font-style: $style;
 		font-weight: $weight;
-		font-display: optional;
+		font-display: swap;
 		src: $src;
 	}
 }
 
-// =============================================================================
+// =========================================
 // gradient background-image
-// =============================================================================
+// =========================================
 @mixin bgi($color: #000000, $height: 1px, $bottom: 0) {
 	background-image: linear-gradient(to top, transparent $bottom, $color $bottom, $color $height+$bottom, transparent $height+$bottom);
 }
 
-// =============================================================================
+// =========================================
 // underline animation
-// =============================================================================
-@mixin underline-end-state($bgSizeX: 100%, $bgSizeY: 100%, $bgPos: left, $behavior: null, $trsProps: null, $trsDuration: null) {
+// =========================================
+@mixin underline-end-state(
+	$bgSizeX: 100%,
+	$bgSizeY: 100%,
+	$bgPos: left,
+	$behavior: null,
+	$trsProps: null,
+	$trsDuration: null
+) {
 	background-position: $bgPos;
 	@if ($behavior == null) {
 		background-size: $bgSizeX $bgSizeY;
@@ -127,7 +137,17 @@
 	}
 }
 
-@mixin underline-start-state($color: #000000, $bgSizeX: 0, $bgSizeY: 100%, $bgPos: left, $trsProps: background-size, $trsDuration: .3s, $behavior: null, $height: 1px, $bottom: 0) {
+@mixin underline-start-state(
+	$color: #000000,
+	$bgSizeX: 0,
+	$bgSizeY: 100%,
+	$bgPos: left,
+	$trsProps: background-size,
+	$trsDuration: .3s,
+	$behavior: null,
+	$height: 1px,
+	$bottom: 0
+) {
 	@include bgi($color, $height, $bottom);
 	background-repeat: no-repeat;
 	background-position: $bgPos;
@@ -146,16 +166,26 @@
 	}
 }
 
-@mixin underline($color: #000000, $bgSizeX: 0, $bgSizeY: 100%, $bgPos: left, $trsProps: background-size, $trsDuration: .3s, $behavior: show-on-hover, $height: 1px, $bottom: 0) {
+@mixin underline(
+	$color: #000000,
+	$bgSizeX: 0,
+	$bgSizeY: 100%,
+	$bgPos: left,
+	$trsProps: background-size,
+	$trsDuration: .3s,
+	$behavior: show-on-hover,
+	$height: 1px,
+	$bottom: 0
+) {
 	@include underline-start-state($color, $bgSizeX, $bgSizeY, $bgPos, $trsProps, $trsDuration, $behavior, $height, $bottom);
 	&.hover, &:hover {
 		@include underline-end-state($bgSizeX, $bgSizeY, $bgPos, $behavior);
 	}
 }
 
-// =============================================================================
+// =========================================
 // make scroll bar invisible, but still working
-// =============================================================================
+// =========================================
 @mixin invisibleScrollbar {
 	-ms-overflow-style: none; /* Internet Explorer 10+ */
 	scrollbar-width: none; /* Firefox */
@@ -167,9 +197,42 @@
 	-ms-overflow-style: none; // EDGE
 }
 
-// =============================================================================
+// =========================================
+// custom scrollbar
+// =========================================
+@mixin customScrollbar($width: 12px) {
+	// Styles for Firefox not a lot of options we are able to set for custom scrollbars
+  scrollbar-width: thin;
+  scrollbar-color: $studio-gray-30 transparent;
+
+	&::-webkit-scrollbar {
+	  width: $width;
+	  background: transparent;
+	}
+
+	&::-webkit-scrollbar-corner {
+	  background: transparent;
+	}
+
+	&::-webkit-scrollbar-thumb {
+	  background: #ddd;
+	  border-radius: 100px;
+	  border: 4px solid #fff;
+	  min-height: 24px;
+	}
+	// hover effect for scrollbar 'thumb'
+	// &::-webkit-scrollbar-thumb:hover {
+	//   background-color: $studio-gray-20;
+	// }
+	// &::-webkit-scrollbar-thumb:active {
+	//   background: #ddd;
+	//   border-radius: 100px;
+	// }
+}
+
+// =========================================
 // reset button styles
-// =============================================================================
+// =========================================
 @mixin resetBtn($bgc: transparent) {
 	border: none;
 	outline: none;
@@ -181,9 +244,9 @@
 	}
 }
 
-// =============================================================================
+// =========================================
 // reset text styles
-// =============================================================================
+// =========================================
 @mixin resetText($font-family: sans-serif) {
 	font-family: $font-family;
 	font-style: normal;
@@ -299,11 +362,12 @@
 	#{$property}-right: calcWidth($num, $gutterShift, $columns, $gutter);
 }
 
-// =============================================================================
-// custom grid
-// =============================================================================
-@mixin grid-row-flex($offset: $offset){
+// =========================================
+// custom flex-box grid
+// =========================================
+@mixin grid-row($offset: $offset){
 	display: flex;
+  flex-wrap: wrap;
 	margin-left: ($offset / -2);
 	margin-right: ($offset / -2);
 }
@@ -317,18 +381,18 @@
 	width: #{calc(100% / #{$columns} * #{$n} - #{$offset})};
 }
 
-// =============================================================================
+// =========================================
 // detect IE10 and above
-// =============================================================================
+// =========================================
 @mixin IE10up(){
 	@media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
 		@content;
 	}
 }
 
-// =============================================================================
-// Centering
-// =============================================================================
+// =========================================
+// centering
+// =========================================
 @mixin center($axis: 'xy') {
 	position: absolute;
 	@if $axis == 'xy' {
@@ -342,13 +406,4 @@
 		left: 50%;
 		transform: translateX(-50%);
 	}
-}
-
-//нужно для fancybox
-@function max($numbers...) {
-	@return m#{a}x(#{$numbers});
-}
-
-@function min($numbers...) {
-	@return m#{i}n(#{$numbers});
 }

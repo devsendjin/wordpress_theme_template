@@ -1,23 +1,20 @@
-/*
-В ФАЙЛЕ ВАЖНА ПОСЛЕДОВАТЕЛЬНОСТЬ ПОДКЛЮЧЕНИЯ!!!
- */
+@import 'abstracts/config';
+// @import 'abstracts/easings';
+@import 'abstracts/functions';
+@import 'abstracts/css-lock';
+@import 'abstracts/mixins';
 
-@import "base/config";
-@import "base/mixins";
+// @import 'vendors/jquery.fancybox.min.css';
 
-//libs
-//https://selectric.js.org/
-//@import 'vendor/selectric';
-//https://fancyapps.com/fancybox/3/docs/
-//@import 'vendor/jquery.fancybox.min';
+@import 'core/reset';
+@import 'core/typography';
+@import 'core/base';
+@import 'core/mixin-css';
 
-@import "base/reset";
+// @import 'components/modals';
+@import 'components/buttons';
+@import 'components/forms';
 
-// @import "modules/sprite";
-@import "modules/buttons";
-@import "modules/forms";
+@import 'sections/*';
 
-@import "application/common";
-@import "application/sections-common/*";
-
-@import "application/layouts/*";
+@import 'layouts/*';

@@ -23,7 +23,7 @@ const closeModal = modal => {
     pageScrollState.unfix();
 };
 
-querySelectorAsArray('.modal').forEach( modal => {
+[...document.querySelectorAll('.modal')].forEach( modal => {
     if(modal.dataset.bgId) {
         document.getElementById(modal.dataset.bgId).addEventListener('click', () => {
             closeModal(modal);
@@ -47,7 +47,7 @@ querySelectorAsArray('.modal').forEach( modal => {
     }
 });
 
-querySelectorAsArray('.modal-opener').forEach( modalOpener => {
+[...document.querySelectorAll('.modal-opener')].forEach( modalOpener => {
     modalOpener.addEventListener('click', () => {
         openModal(modalOpener.dataset.modalId);
     });

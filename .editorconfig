@@ -1,0 +1,16 @@
+[**]
+end_of_line = lf
+insert_final_newline = true
+
+
+[*.{php,scss,css,js}]
+charset = utf-8
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.php]
+indent_size = 4
+
+[Makefile]
+indent_style = tab

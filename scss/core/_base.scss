@@ -1,8 +1,9 @@
 :root {
   --side-padding: 40px; // container padding left/right
-  --top-distance: 160px; // sections margin-top
+  --section-top: 100px; // sections margin-top
+  --black: #{$black};
+  --primary-font: #{$montserrat};
 }
-
 
 html.fixed,
 html.fixed body {
@@ -17,13 +18,13 @@ html, body {
 }
 
 body {
-  font-family: $montserrat;
+  font-family: var(--primary-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
   line-height: 1.6;
   font-weight: 400;
-  color: $black;
+  color: var(--black);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -45,32 +46,25 @@ body {
   }
 }
 
-%container-common {
+%container {
   margin: 0 auto;
   padding-left: var(--side-padding);
   padding-right: var(--side-padding);
 }
 
 .container {
-  max-width: calc(1450px + var(--side-padding) * 2);
-  @extend %container-common;
+  max-width: calc(1300px + var(--side-padding) * 2);
+  @extend %container;
 }
 
 .section {
   position: relative;
-  .section-title {
-    font-weight: 600;
-    font-size: 40px;
-    line-height: 56px;
-    letter-spacing: 1px;
-    color: $black;
-    margin-bottom: 60px;
-  }
+  margin-top: var(--section-top);
 }
 
 .wp-content {
   font-weight: normal;
-  color: $black;
+  color: var(--black);
   h2 {
     font-weight: 600;
     font-size: 40px;

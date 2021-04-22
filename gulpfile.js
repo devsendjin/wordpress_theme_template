@@ -1,23 +1,25 @@
-const { src, dest, parallel, task, watch, lastRun } = require('gulp');
-const webpackStream = require('webpack-stream');
+const { src, dest, parallel, task, watch } = require('gulp');
 
 //utils
 const sourcemaps = require('gulp-sourcemaps');
+const concat = require('gulp-concat');
 const gulpIf = require('gulp-if');
 const plumber = require('gulp-plumber');
 const size = require('gulp-size');
-const remember = require('gulp-remember');
+const through = require('through2');
 
 //scss
 const postcss = require('gulp-postcss');
+const autoprefixer = require('autoprefixer');
 const inlineSvg = require('postcss-inline-svg'); // https://www.npmjs.com/package/postcss-inline-svg
 const sortMediaQueries = require('postcss-sort-media-queries');
-const scss = require('gulp-sass');
+const scss = require('gulp-dart-sass');
 const csso = require('gulp-csso');
 const bulkSass = require('gulp-sass-bulk-import');
 
 //js
-const TerserPlugin = require('terser-webpack-plugin');
+const babel = require('gulp-babel');
+const terser = require('gulp-terser');
 
 //svg
 const svgSprite = require('gulp-svg-sprite');
@@ -27,111 +29,131 @@ const replace = require('gulp-replace');
 //server
 const browserSync = require('browser-sync').create();
 
-const MODE = process.env.NODE_ENV || 'development';
-const isProduction = (process.env.NODE_ENV === 'production') || ['--p', '--prod', '--production'].some(item => process.argv.includes(item));
-const isDevelopment = (process.env.NODE_ENV === 'development') || ['--d', '--dev', '--development'].some(item => process.argv.includes(item));
+const {
+  ENV,
+  __DEV__,
+  __PROD__,
+  serverEnabled,
+  shouldOpenBrowser,
+  useGulpForJs,
+  terserOptions,
+} = require('./scripts.config')
 
-const serverEnabled = ['--s', '--serve', '--server'].some(item => process.argv.includes(item));
-const shouldOpenBrowser = serverEnabled && ['--o', '--open'].some(item => process.argv.includes(item));
+const paths = {
+	source_directory: '.',
+	build_directory: '.',
+  sourcemaps: './sourcemaps',
+  get js() {
+		return {
+			src: `${this.source_directory}/js/src`,
+			build: `${this.build_directory}/js/build`,
+		}
+	},
+	get scss() {
+		return {
+			src: `${this.source_directory}/scss`,
+			build: `${this.build_directory}/css`,
+			watch: `${this.build_directory}/scss/**/*.scss`,
+		}
+	},
+};
+
+const removeEmptyLines = () => {
+	return through.obj(function(file, _encoding, callback) {
+		let fileContent = file.contents.toString();
+		if (fileContent !== null || fileContent !== '' || fileContent) {
+			try {
+				fileContent = fileContent.replace(/[\r\n]/gm, '') // remove 2 and more spaces in a row
+				fileContent = fileContent.replace(/[\s]{2,}/gm, '') // remove empty lines and line breaks
+				file.contents = Buffer.from(fileContent);
+			} catch (err) {
+				this.emit('error', new Error(`Something went wrong during removing empty lines! Error:\n${err.message}`));
+			}
+		}
+		this.push(file);
+		callback();
+	})
+}
+
 
 const server = () => {
 	browserSync.init({
-		proxy: "http://test-wp.loc/",
+		proxy: ENV.SITE_URL || 'http://test-wp.loc/',
 		files: ['./**/*.php'],
 		open: shouldOpenBrowser,
-		notify: false
-	});
+		notify: false,
+    reloadOnRestart: true,
+  });
 }
 
 const styles = () => {
-	return src('./scss/*.scss')
+	return src(`${paths.scss.src}/*.scss`)
 		.pipe(plumber({
 			errorHandler: function (err) {
 				console.log('styles ', err.message);
 				this.end();
 			}
 		}))
-		.pipe(gulpIf(isDevelopment, sourcemaps.init()))
+		.pipe(gulpIf(__DEV__, sourcemaps.init()))
 		.pipe(bulkSass())
 		.pipe(scss().on('error', scss.logError))
 		.pipe(postcss([
-			require('autoprefixer')(),
+			autoprefixer(),
 			inlineSvg({ removeFill: true, removeStroke: true }),
 			sortMediaQueries({
 				sort: 'desktop-first'
 			})
 		]))
 		.pipe(csso({ restructure: true }))
-		// .pipe(replace(/[\.\.\/]+img/gmi, '../img')) //заменяем пути к изображениям на правильные
-		// .pipe(replace(/url\(["']?(?:\.?\.?\/?)*(?:\w*\/)*(\w+)(.svg|.gif|.png|.jpg|.jpeg)["']?\)/gmi, '"../img/$1$2"')) //заменяем пути к изображениям на правильные
-		.pipe(gulpIf(isDevelopment, sourcemaps.write()))
-		.pipe(gulpIf(isProduction, size({ showFiles: true, title: 'CSS' })))
-		.pipe(dest('./css'))
+		.pipe(gulpIf(!__PROD__, sourcemaps.write(paths.sourcemaps)))
+		.pipe(gulpIf(__PROD__, size({ showFiles: true, title: 'CSS' })))
+		.pipe(dest(paths.scss.build))
 		.pipe(gulpIf(serverEnabled, browserSync.stream()));
 }
 
-const scripts = () => {
-	const jsFiles = [
-		{ entry: 'bundle', path: './js/src/common/bundle.js' },
-		{ entry: 'page-main', path: './js/src/pages/page-main.js' },
-	];
-
-	return src(jsFiles.map(item => item.path), { since: lastRun(scripts) })
-		.pipe(remember('scripts'))
+const scriptsBundle = () => {
+	return src([
+		`${paths.js.src}/common/config.js`,
+		`${paths.js.src}/vendor/jquery.min.js`,
+		`${paths.js.src}/vendor/jquery.magnific-popup.min.js`,
+		`${paths.js.src}/common/bundle.js`,
+	])
 		.pipe(plumber({
-			errorHandler: function (err) {
-				console.log('scripts ', err.message);
+			errorHandler: function(err) {
+				console.log('scriptsBundle ', err.message);
 				this.end();
 			}
 		}))
-		.pipe(webpackStream({
-			mode: MODE,
-			entry: jsFiles.reduce((accumulator, currentValue) => {
-				return Object.assign(accumulator, { [currentValue.entry]: currentValue.path })
-			}, {}),
-			output: {
-				filename: '[name].js',
-			},
-			devtool: false,
-			optimization: isProduction ? {
-				minimize: true,
-				minimizer: [
-					new TerserPlugin({
-						terserOptions: {
-							warnings: false,
-							compress: {
-								comparisons: false,
-							},
-							parse: {},
-							mangle: true,
-							output: {
-								comments: false,
-								ascii_only: true,
-							},
-						},
-						extractComments: false,
-						sourceMap: false,
-					}),
-				],
-				nodeEnv: MODE,
-				sideEffects: true,
-				concatenateModules: true,
-			} : {},
-			module: {
-				rules: [
-					{
-						test: /\.(js)$/,
-						exclude: /(node_modules)/,
-						loader: 'babel-loader',
-						query: {
-							presets: ['@babel/preset-env']
-						}
-					}
-				]
-			},
+		.pipe(gulpIf(__DEV__, sourcemaps.init()))
+		.pipe(gulpIf(__PROD__, babel({
+			presets: ['@babel/env']
+		})))
+		.pipe(gulpIf(__PROD__, terser(terserOptions)))
+		.pipe(concat('bundle.js'))
+		.pipe(gulpIf(__PROD__, removeEmptyLines()))
+		.pipe(gulpIf(!__PROD__, sourcemaps.write(paths.sourcemaps)))
+		.pipe(gulpIf(__PROD__, size({ showFiles: true, title: 'JS' })))
+		.pipe(dest(paths.js.build))
+		.pipe(gulpIf(serverEnabled, browserSync.stream()));
+}
+
+const scriptsPages = () => {
+	return src(`${paths.js.src}/pages/*.js`)
+		.pipe(plumber({
+			errorHandler: function(err) {
+				console.log('scriptsPages ', err.message);
+				this.end();
+			}
 		}))
-		.pipe(gulpIf(isProduction, size({ showFiles: true, title: 'JS' })))
-		.pipe(dest('./js/min'))
+		.pipe(gulpIf(__DEV__, sourcemaps.init()))
+		.pipe(gulpIf(__PROD__, babel({
+			presets: ['@babel/env']
+		})))
+		.pipe(gulpIf(__PROD__, terser(terserOptions)))
+		.pipe(gulpIf(__PROD__, removeEmptyLines()))
+		.pipe(gulpIf(!__PROD__, sourcemaps.write(paths.sourcemaps)))
+		.pipe(gulpIf(__PROD__, size({ showFiles: true, title: 'JS' })))
+		.pipe(dest(paths.js.build))
 		.pipe(gulpIf(serverEnabled, browserSync.stream()));
 }
 
@@ -162,7 +184,7 @@ const createSvgSprite = () => {
 					sprite: '../sprite.svg',
 					render: {
 						scss: {
-							dest:'../../../scss/modules/_sprite.scss',
+							dest:'../../../scss/components/_sprite.scss',
 						}
 					}
 				}
@@ -172,8 +194,11 @@ const createSvgSprite = () => {
 };
 
 const watchTask = () => {
-	watch(['./js/src/common/*.js', './js/src/pages/*.js'], scripts);
-	watch('./scss/**/*.scss', styles)
+  if (useGulpForJs) {
+    watch(`${paths.js.src}/common/*.js`, scriptsBundle);
+    watch(`${paths.js.src}/pages/*.js`, scriptsPages);
+  }
+	watch(paths.scss.watch, styles);
 }
 
 const defaultTask = serverEnabled ? parallel(watchTask, server) : watchTask;
@@ -182,5 +207,5 @@ task('default', defaultTask);
 task('server', server);
 task('sprite', createSvgSprite);
 task('css', styles);
-task('js', scripts);
-task('build', parallel(styles, scripts));
+task('js', parallel(scriptsBundle, scriptsPages));
+task('build', useGulpForJs ? parallel(styles, scriptsBundle, scriptsPages) : styles);

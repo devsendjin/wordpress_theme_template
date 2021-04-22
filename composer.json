@@ -1,7 +1,8 @@
 {
+    "name": "devsendjin/wp-theme-template",
+    "description": "Wordpress theme template",
     "require": {
         "filp/whoops": "^2.7",
-        "maximebf/debugbar": "^1.16",
         "kint-php/kint": "^3.3"
     }
 }

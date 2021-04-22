@@ -4,11 +4,11 @@ class Utils
 {
 	const CSRF_TOKEN_NAME = 'csrf-token';
 
-    public static function clearPhone($phone, $additional = [])
+    public static function clearPhone($phone, $additionalFilters = [])
     {
         $symbols_to_replace = ['-', ' ', '(', ')'];
-        if (!empty($additional)) {
-            foreach ($additional as $symbol) {
+        if (!empty($additionalFilters)) {
+            foreach ($additionalFilters as $symbol) {
                 $symbols_to_replace[] = $symbol;
             }
         }
@@ -22,7 +22,7 @@ class Utils
         }
         $fullPath = get_template_directory().$pathFromThemeRoot;
         if(file_exists($fullPath)){
-            return get_template_directory_uri().$pathFromThemeRoot.'?'.filemtime($fullPath);
+            return get_template_directory_uri() . $pathFromThemeRoot . '?' . filemtime($fullPath);
         }else{
             return '';
         }
