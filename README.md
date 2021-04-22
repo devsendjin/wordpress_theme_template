@@ -49,9 +49,6 @@
 | `build:webpack` | production build using webpack |
 
 ## Hints
-- 
-
-## Hints
 - edit `paths` object in *gulpfile.js* if needed
 - before using gulp, edit scripts src in `scriptsBundle` and `scriptsPages` functions
 - before using webpack configure entry point in `webpack.config.js`
