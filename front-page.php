@@ -1,9 +1,9 @@
 <?php
 
-wp_enqueue_script( 'page-main', Utils::getAssetUrlWithTimestamp( '/js/build/page-main.js' ), [ 'bundle' ], null, true );
-wp_enqueue_style( 'page-main', Utils::getAssetUrlWithTimestamp( '/css/page-main.css' ), [ 'bundle' ], null );
+wp_enqueue_script('page-main', Utils::getAssetUrlWithTimestamp('/js/build/page-main.js'), [ 'bundle' ], null, true);
+wp_enqueue_style('page-main', Utils::getAssetUrlWithTimestamp('/css/page-main.css'), [ 'bundle' ], null);
 
-SiteConfig::setPageClasses( 'page-main' );
+SiteConfig::setPageClasses('page-main');
 get_header();
 
 ?>

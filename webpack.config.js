@@ -1,72 +1,112 @@
 const path = require('path');
-const webpack = require('webpack');
+const Webpack = require('webpack');
+const WebpackBar = require('webpackbar');
 const TerserPlugin = require("terser-webpack-plugin");
 
-const config = {
-  ...require('./scripts.config'),
+const buildConfig = {
+  ...require('./config'),
   SOURCE_ROOT: path.join(process.cwd(), 'js/src'),
   BUILD_ROOT: path.join(process.cwd(), 'js/build'),
 }
 
-module.exports = function (env, argv) {
-  return {
-    mode: config.MODE,
-    entry: path.join(config.SOURCE_ROOT, 'common/bundle.js'),
-    output: {
-      path: config.BUILD_ROOT,
-      filename: 'bundle.js',
-      sourceMapFilename: 'sourcemaps/[name][ext].map', // works only if devtool='source-map'
-      publicPath: '/',
-    },
-    devtool: config.__DEV__ ? 'eval-cheap-module-source-map' : false,
-    target: 'web',
-    resolve: {
-      extensions: ['.js', '.json'],
-    },
-    watchOptions: {
-      aggregateTimeout: 600,
-      ignored: /node_modules/,
-    },
-    module: {
-      rules: [
-        {
-          test: /\.js$/,
-          use: {
-            loader: 'babel-loader',
-            options: {
-              presets: ['@babel/preset-env'],
-              plugins: ['@babel/plugin-proposal-class-properties'],
-            },
-          },
-          exclude: /node_modules/,
+const shouldWatch = process.argv.includes('--watch');
+const shouldBuild = process.argv.includes('--build');
+
+const webpackConfig = {
+  mode: buildConfig.MODE,
+  entry: {
+    bundle: path.join(buildConfig.SOURCE_ROOT, 'common/bundle.js'),
+  },
+  output: {
+    path: buildConfig.BUILD_ROOT,
+    filename: '[name].js',
+    sourceMapFilename: 'sourcemaps/[name][ext].map', // works only if devtool='source-map'
+    publicPath: '/',
+  },
+  devtool: buildConfig.__DEV__ ? 'eval-cheap-module-source-map' : false,
+  target: 'web',
+  resolve: {
+    extensions: ['.js', '.json'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: {
+          loader: 'babel-loader',
+          options: buildConfig.babelOptions,
         },
-      ],
-    },
-    optimization: config.__PROD__ ? {
-      nodeEnv: config.MODE,
-      runtimeChunk: false,
-      minimize: true,
-      sideEffects: true,
-      concatenateModules: true,
-      emitOnErrors: false,
-      removeEmptyChunks: true,
-      mergeDuplicateChunks: true,
-      removeAvailableModules: true,
-      providedExports: true,
-      usedExports: true,
-      minimizer: [
-        new TerserPlugin({
-          exclude: /node_modules/,
-          extractComments: false,
-          terserOptions: config.terserOptions,
-        })
-      ],
-    } : {},
-    plugins: [
-      new webpack.DefinePlugin({
-        __DEV__: config.__DEV__,
-        __PROD__: config.__PROD__,
-      }),
+        exclude: /node_modules/,
+      },
     ],
-  };
+  },
+  optimization: buildConfig.__PROD__ ? {
+    nodeEnv: buildConfig.MODE,
+    runtimeChunk: false,
+    minimize: true,
+    sideEffects: true,
+    concatenateModules: true,
+    emitOnErrors: false,
+    removeEmptyChunks: true,
+    mergeDuplicateChunks: true,
+    removeAvailableModules: true,
+    providedExports: true,
+    usedExports: true,
+    minimizer: [
+      new TerserPlugin({
+        exclude: /node_modules/,
+        extractComments: false,
+        terserOptions: buildConfig.terserOptions,
+      })
+    ],
+  } : {},
+  plugins: [
+    new Webpack.DefinePlugin({
+      __DEV__: buildConfig.__DEV__,
+      __PROD__: buildConfig.__PROD__,
+    }),
+    new WebpackBar({}),
+  ],
 };
+
+
+const compiler = Webpack(webpackConfig);
+
+const compilerErrorHandler = (err, stats) => {
+  if (err) {
+    console.error(err.stack || err);
+    if (err.details) {
+      console.error(err.details);
+    }
+    return;
+  }
+
+  const info = stats.toJson();
+
+  if (stats.hasErrors()) {
+    console.error(info.errors);
+  }
+
+  if (stats.hasWarnings()) {
+    console.warn(info.warnings);
+  }
+};
+
+const watch = () => {
+  return compiler.watch({
+    aggregateTimeout: 300,
+    ignored: /node_modules/,
+  }, compilerErrorHandler);
+}
+
+const build = () => {
+  return compiler.run(compilerErrorHandler);
+}
+
+if (shouldWatch) {
+  watch();
+} else if(shouldBuild) {
+  build();
+} else {
+  console.error('Missing flag "--watch" or "--build"');
+}

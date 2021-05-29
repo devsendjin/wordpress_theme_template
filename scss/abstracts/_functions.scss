@@ -14,7 +14,7 @@
 // @param {String} $search - Value whitch will be replaced with.
 //
 // @returns {String} The string with replaced value.
-@function str-replace($string, $search, $replace: "") {
+@function str-replace($string, $search, $replace: '') {
   $index: str-index($string, $search);
 
   @if $index {
@@ -32,4 +32,3 @@
 @function min($numbers...) {
   @return m#{i}n(#{$numbers});
 }
-

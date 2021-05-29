@@ -12,18 +12,18 @@
     <script src="<?= SiteConfig::$templateUri ?>/js/build/lazysizes.min.js" async></script>
 
     <meta name="theme-color" content="#ffffff"/>
-    <link rel="manifest" href="<?= Utils::getAssetUrlWithTimestamp( 'manifest.json' ) ?>">
+    <link rel="manifest" href="<?= Utils::getAssetUrlWithTimestamp('manifest.json') ?>">
     <?php wp_head() ?>
     <?php //echo '<link href="' . SiteConfig::$$templateUri . '/bug-fix.css" rel="stylesheet">'; ?>
 </head>
 <body
     <?=
-    SiteConfig::renderTagAttributes( [
+    SiteConfig::renderTagAttributes([
         'id'    => SiteConfig::getPageId(),
         'class' => [ 'lazyload-fade', SiteConfig::getPageClasses() ],
-    ] )
-    ?>
-    data-site-uri="<?= site_url() ?>">
+    ])
+		?>
+    data-site-uri="<?= SiteConfig::$homeUrl ?>">
 <header class="header">
     <div class="container">
         Header

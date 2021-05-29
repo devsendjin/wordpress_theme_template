@@ -1,8 +1,6 @@
 :root {
   --side-padding: 40px; // container padding left/right
   --section-top: 100px; // sections margin-top
-  --black: #{$black};
-  --primary-font: #{$montserrat};
 }
 
 html.fixed,
@@ -18,17 +16,17 @@ html, body {
 }
 
 body {
-  font-family: var(--primary-font);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-size: 16px;
-  line-height: 1.6;
-  font-weight: 400;
-  color: var(--black);
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
-  background-color: #ffffff;
+  font-family: $primary-font;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: $default-font-size;
+  line-height: 1.6;
+  color: $black;
+  background-color: #fff;
 
   .main {
     flex-grow: 1;
@@ -64,7 +62,7 @@ body {
 
 .wp-content {
   font-weight: normal;
-  color: var(--black);
+  color: $black;
   h2 {
     font-weight: 600;
     font-size: 40px;

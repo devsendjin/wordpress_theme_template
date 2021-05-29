@@ -1,5 +1,10 @@
 # Wordpress theme template
 
+## If Wordpress bootstrapped with [bedrock](https://roots.io/bedrock/):
+1. remove `composer.json` and `composer.lock` files from theme folder
+2. go to project root
+3. run `composer require filp/whoops kint-php/kint --dev`
+
 * [The 7-1 Pattern](https://sass-guidelin.es/#the-7-1-pattern) - css architecture used in project.
 
 
@@ -9,14 +14,17 @@
   Out-of-the-box, it provides a pretty error interface
 
 ## After clone template
-- run `npm install && composer install`
+- navigate to theme folder
+- run `npm install`
+- run `composer install` (if Wordpress was not bootstrapped with [bedrock](https://roots.io/bedrock/))
+  
+<br />
 
-  <br />
-
-| ENV | Description |
-| ------ | ------ |
-| `SITE_URL` | site url, that will be used as proxy for [browsersync](https://www.browsersync.io/) (default: `http://test-wp.loc/`) |
-| `JS_BUILD_TOOL` | tool for building and transpiling *js* (possible values: `gulp`, `webpack`)  |
+| Env variable | Options | Default | Description |
+| ------ | ------ | ------ | ------ |
+| `NODE_ENV` | development <br /> production | development | build process depends on this variable |
+| `SITE_URL` | none | none | site url, that will be used as proxy for [browsersync](https://www.browsersync.io/) <br /> if not set, you can't start [dev server]((https://www.browsersync.io/)) and handle assets at all |
+| `JS_BUILD_TOOL` | gulp <br /> webpack | gulp | tool for building and transpiling *js* |
 
 ## Usage
 
@@ -41,15 +49,24 @@
 
 | NPM command | Description |
 | ------ | ------ |
-| `watch:dev` | development mode with enabled server [browsersync](https://www.browsersync.io/) |
-| `watch:prod` | production mode with enabled server [browsersync](https://www.browsersync.io/) |
-| `build:dev` | build without minified styles and scripts
-| `build:prod` | build with minified styles and scripts
-| `watch:webpack` | development using webpack |
-| `build:webpack` | production build using webpack |
+| `watch:dev:gulp` | `gulp` development mode with enabled server [browsersync](https://www.browsersync.io/) |
+| `build:dev:gulp` | `gulp` build without minified styles and scripts |
+| `build:prod:gulp` | `gulp` build with minified styles and scripts |
+| `watch:dev:webpack` | `webpack` development mode, watching files |
+| `build:dev:webpack` | `webpack` development mode, bundling js without minification |
+| `build:prod:webpack` | `webpack` bundling js with minification |
+
+<br />
+
+| Makefile commands | Description |
+| ------ | ------ |
+| `start` | start watching and server, mode `development` [browsersync](https://www.browsersync.io/) |
+| `start-webpack` | start watching js with webpack, other assets with gulp and server, mode `development` [browsersync](https://www.browsersync.io/) |
+| `dev` | remove `build` directory + building with `gulp`, mode `development` |
+| `prod` | remove `build` directory + building with `gulp`, with minification |
+
 
 ## Hints
 - edit `paths` object in *gulpfile.js* if needed
-- before using gulp, edit scripts src in `scriptsBundle` and `scriptsPages` functions
-- before using webpack configure entry point in `webpack.config.js`
+- make sure you specify correct webpack entry point in `webpack.config.js`
 - `__DEV__` and `__PROD__` mode variables provided to JS during build time

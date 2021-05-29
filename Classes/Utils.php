@@ -2,7 +2,7 @@
 
 class Utils
 {
-	const CSRF_TOKEN_NAME = 'csrf-token';
+    public const CSRF_TOKEN_NAME = 'csrf-token';
 
     public static function clearPhone($phone, $additionalFilters = [])
     {
@@ -15,23 +15,23 @@ class Utils
         return str_replace($symbols_to_replace, '', $phone);
     }
 
-    public static function getAssetUrlWithTimestamp($pathFromThemeRoot)
+    public static function getAssetUrlWithTimestamp($pathFromThemeRoot): string
     {
-        if(mb_substr($pathFromThemeRoot, 0, 1) !== '/'){
+        if (mb_substr($pathFromThemeRoot, 0, 1) !== '/') {
             $pathFromThemeRoot = '/'.$pathFromThemeRoot;
         }
         $fullPath = get_template_directory().$pathFromThemeRoot;
-        if(file_exists($fullPath)){
+        if (file_exists($fullPath)) {
             return get_template_directory_uri() . $pathFromThemeRoot . '?' . filemtime($fullPath);
-        }else{
-            return '';
         }
+
+        return '';
     }
 
-    public static function getFileContentByAttachmentId($id)
+    public static function getFileContentByAttachmentId($id): string
     {
         $url = wp_get_attachment_url($id);
-        if(!empty($url)){
+        if (!empty($url)) {
             $file = file_get_contents($url);
         }
         return $file ? $file : '';
@@ -39,12 +39,12 @@ class Utils
 
     public static function getFullImageUrlByAttachmentId($id)
     {
-        return wp_get_attachment_image_src( $id, 'full')[0];
+        return wp_get_attachment_image_src($id, 'full')[0];
     }
 
-    public static function getNormalizedMetaData($postId = null, $postType = 'post', $showHiddenFields = false)
+    public static function getNormalizedMetaData($postId = null, $postType = 'post', $showHiddenFields = false): array
     {
-        if(empty($postId)){
+        if (empty($postId)) {
             global $post;
             $postId = $post->ID;
         }
@@ -52,18 +52,18 @@ class Utils
             $metaData = get_metadata($postType, $postId, '');
             if (!empty($metaData)) {
                 return self::normalizeMetaData($metaData, $showHiddenFields, $postId);
-            } else {
-                return [];
             }
-        } else {
+
             return [];
         }
+
+        return [];
     }
 
-    private static function normalizeMetaData($metaData, $showHiddenFields, $postId)
+    private static function normalizeMetaData($metaData, $showHiddenFields, $postId): array
     {
         global $metaFieldsObj;
-        if(!$showHiddenFields){
+        if (!$showHiddenFields) {
             $metaData = array_filter($metaData, function ($key) {
                 return mb_substr($key, 0, 1) !== '_';
             }, ARRAY_FILTER_USE_KEY);
@@ -75,15 +75,17 @@ class Utils
 
         $pageMetaFields = $metaFieldsObj->getPageMetaFields(get_post($postId));
         $pageMetaFieldsTypes = [];
-        foreach ($pageMetaFields as $item){
-            if(isset($item['id'])){
+        foreach ($pageMetaFields as $item) {
+            if (isset($item['id'])) {
                 $pageMetaFieldsTypes[$item['id']] = $item['type'];
             }
         }
 
-        foreach ($metaDataUnserialized as $key => $value){
-            if($pageMetaFieldsTypes[$key] === 'repeater'){
-                $metaDataUnserialized[$key] = array_map(function ($item){ return (object)$item;}, $value);
+        foreach ($metaDataUnserialized as $key => $value) {
+            if ($pageMetaFieldsTypes[$key] === 'repeater') {
+                $metaDataUnserialized[$key] = array_map(function ($item) {
+                    return (object)$item;
+                }, $value);
             }
         }
         return $metaDataUnserialized;
@@ -102,17 +104,16 @@ class Utils
 
     public static function explodeList($listStr)
     {
-        $listStr = str_replace("\n", ',', $listStr);
-        $listStr = str_replace("\r", ',', $listStr);
+        $listStr = str_replace(["\n", "\r"], ',', $listStr);
         $list = explode(',', $listStr);
         $list = array_map('trim', $list);
         return array_filter($list);
     }
 
-    private static function generateRandomString($stringLength = null)
+    private static function generateRandomString($stringLength = null): string
     {
-        if(empty($stringLength)){
-            $stringLength = rand(40, 50);
+        if (empty($stringLength)) {
+            $stringLength = random_int(40, 50);
         }
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
@@ -123,30 +124,30 @@ class Utils
         return $randomString;
     }
 
-    public static function getRequestScheme()
+    public static function getRequestScheme(): string
     {
         return (!empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on')) ? 'https' : 'http';
     }
 
-    public static function clearValue($val)
+    public static function clearValue($val): string
     {
         return nl2br(htmlspecialchars(trim($val), ENT_QUOTES));
     }
 
-    public static function getNonceName()
+    public static function getNonceName(): string
     {
         return 'ajax-mail';
     }
 
-    public static function getNonceActionName($flag = false)
+    public static function getNonceActionName($flag = false): string
     {
         $nonceActionFileName = __DIR__.'/_nonceActionName.php';
-        if(file_exists($nonceActionFileName)){
+        if (file_exists($nonceActionFileName)) {
             require_once '_nonceActionName.php';
             $actionName = nonceActionName();
-        }else{
+        } else {
             $actionName = self::generateRandomString(10);
-            file_put_contents($nonceActionFileName, "<?php function nonceActionName() { return '. $actionName . '; };");
+            file_put_contents($nonceActionFileName, "<?php function nonceActionName() { return '. $actionName . '; }");
         }
         if ($flag) {
             echo $actionName;
@@ -154,7 +155,7 @@ class Utils
         return $actionName;
     }
 
-	public static function getTemplateFileName($postId)
+    public static function getTemplateFileName($postId)
     {
         return get_post_meta($postId, '_wp_page_template', true);
     }
@@ -164,66 +165,70 @@ class Utils
         return get_permalink(self::getBindedPage($templateName)->ID);
     }
 
-	public static function emailRegExp() {
+    public static function emailRegExp(): string
+    {
         return '/^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/';
     }
 
-	public static function emailValid($email) {
+    public static function emailValid($email)
+    {
         return preg_match(self::emailRegExp(), $email);
     }
 
-	public static function csrfField()
+    public static function csrfField(): string
     {
-        $nonce_field = '<input type="hidden" name="' . self::CSRF_TOKEN_NAME . '" value="' . wp_create_nonce( self::getNonceActionName() ) . '" />';
-        $nonce_field .= wp_referer_field( false );
+        $nonce_field = '<input type="hidden" name="' . self::CSRF_TOKEN_NAME . '" value="' . wp_create_nonce(self::getNonceActionName()) . '" />';
+        $nonce_field .= wp_referer_field(false);
         return $nonce_field;
     }
 
-	public static function antiBotInput()
+    public static function antiBotInput(): string
     {
         return "<label style='display: none'><input type='checkbox' class='agree' name='agree' checked value=''>Согласие на обработку персональных данных</label>";
     }
 
     public static function getCsrfToken()
     {
-        return wp_create_nonce( self::getNonceActionName() );
+        return wp_create_nonce(self::getNonceActionName());
     }
 
-	public static function cyr2lat($string)
-	{
-		$converter = array(
-			'а' => 'a',   'б' => 'b',   'в' => 'v',
-			'г' => 'g',   'д' => 'd',   'е' => 'e',
-			'ё' => 'e',   'ж' => 'zh',  'з' => 'z',
-			'и' => 'i',   'й' => 'y',   'к' => 'k',
-			'л' => 'l',   'м' => 'm',   'н' => 'n',
-			'о' => 'o',   'п' => 'p',   'р' => 'r',
-			'с' => 's',   'т' => 't',   'у' => 'u',
-			'ф' => 'f',   'х' => 'h',   'ц' => 'c',
-			'ч' => 'ch',  'ш' => 'sh',  'щ' => 'sch',
-			'ь' => '',    'ы' => 'y',   'ъ' => '',
-			'э' => 'e',   'ю' => 'yu',  'я' => 'ya',
-			'ґ' => 'g',   'і' => 'i',   'ї' => 'i',
-
-			'А' => 'A',   'Б' => 'B',   'В' => 'V',
-			'Г' => 'G',   'Д' => 'D',   'Е' => 'E',
-			'Ё' => 'E',   'Ж' => 'Zh',  'З' => 'Z',
-			'И' => 'I',   'Й' => 'Y',   'К' => 'K',
-			'Л' => 'L',   'М' => 'M',   'Н' => 'N',
-			'О' => 'O',   'П' => 'P',   'Р' => 'R',
-			'С' => 'S',   'Т' => 'T',   'У' => 'U',
-			'Ф' => 'F',   'Х' => 'H',   'Ц' => 'C',
-			'Ч' => 'Ch',  'Ш' => 'Sh',  'Щ' => 'Sch',
-			'Ь' => '',    'Ы' => 'Y',   'Ъ' => '',
-			'Э' => 'E',   'Ю' => 'Yu',  'Я' => 'Ya',
-			'Ґ' => 'G',   'І' => 'I',   'Ї' => 'I',
-		);
-		return strtr($string, $converter);
-	}
-
-    public static function textShorter($string, $amountOfWords = 4, $dostAtTheEnd = '...')
+    public static function cyr2lat($string): string
     {
-        if (empty($string)) return '';
+        $converter = array(
+            'а' => 'a',   'б' => 'b',   'в' => 'v',
+            'г' => 'g',   'д' => 'd',   'е' => 'e',
+            'ё' => 'e',   'ж' => 'zh',  'з' => 'z',
+            'и' => 'i',   'й' => 'y',   'к' => 'k',
+            'л' => 'l',   'м' => 'm',   'н' => 'n',
+            'о' => 'o',   'п' => 'p',   'р' => 'r',
+            'с' => 's',   'т' => 't',   'у' => 'u',
+            'ф' => 'f',   'х' => 'h',   'ц' => 'c',
+            'ч' => 'ch',  'ш' => 'sh',  'щ' => 'sch',
+            'ь' => '',    'ы' => 'y',   'ъ' => '',
+            'э' => 'e',   'ю' => 'yu',  'я' => 'ya',
+            'ґ' => 'g',   'і' => 'i',   'ї' => 'i',
+
+            'А' => 'A',   'Б' => 'B',   'В' => 'V',
+            'Г' => 'G',   'Д' => 'D',   'Е' => 'E',
+            'Ё' => 'E',   'Ж' => 'Zh',  'З' => 'Z',
+            'И' => 'I',   'Й' => 'Y',   'К' => 'K',
+            'Л' => 'L',   'М' => 'M',   'Н' => 'N',
+            'О' => 'O',   'П' => 'P',   'Р' => 'R',
+            'С' => 'S',   'Т' => 'T',   'У' => 'U',
+            'Ф' => 'F',   'Х' => 'H',   'Ц' => 'C',
+            'Ч' => 'Ch',  'Ш' => 'Sh',  'Щ' => 'Sch',
+            'Ь' => '',    'Ы' => 'Y',   'Ъ' => '',
+            'Э' => 'E',   'Ю' => 'Yu',  'Я' => 'Ya',
+            'Ґ' => 'G',   'І' => 'I',   'Ї' => 'I',
+        );
+        return strtr($string, $converter);
+    }
+
+    public static function textShorter($string, $amountOfWords = 4, $dostAtTheEnd = '...'): string
+    {
+        if (empty($string)) {
+            return '';
+        }
         $string = strip_tags($string);
 
         $primaryWords = explode(' ', trim($string));
@@ -237,31 +242,30 @@ class Utils
         return count($primaryWords) <= $amountOfWords ? $resultStr : $resultStr . $dostAtTheEnd;
     }
 
-	private static function normalizeTemplateFileName($fileName)
+    private static function normalizeTemplateFileName($fileName)
     {
-        if(substr($fileName, -4) !== '.php'){
+        if (substr($fileName, -4) !== '.php') {
             $fileName .= '.php';
         }
         return $fileName;
     }
 
-  public static function svgContentByAttachmentId($attachmentId)
-  {
-      $fileContent = self::getFileContentByAttachmentId($attachmentId);
-      if($fileContent !== ''){
-          $startPosition = mb_strpos($fileContent, '<svg');
-          if($startPosition !== false){
-              $endPosition = mb_strpos($fileContent, '</svg>', $startPosition);
-              if($endPosition !== false){
-                  $fileContent = mb_substr($fileContent, $startPosition, $endPosition - $startPosition+6); // 6 = length of '</svg>' string
-              }else{
-                  $fileContent = '';
-              }
-          }else{
-              $fileContent = '';
-          }
-      }
-      return $fileContent;
-  }
-
+    public static function svgContentByAttachmentId($attachmentId): string
+    {
+        $fileContent = self::getFileContentByAttachmentId($attachmentId);
+        if ($fileContent !== '') {
+            $startPosition = mb_strpos($fileContent, '<svg');
+            if ($startPosition !== false) {
+                $endPosition = mb_strpos($fileContent, '</svg>', $startPosition);
+                if ($endPosition !== false) {
+                    $fileContent = mb_substr($fileContent, $startPosition, $endPosition - $startPosition+6); // 6 = length of '</svg>' string
+                } else {
+                    $fileContent = '';
+                }
+            } else {
+                $fileContent = '';
+            }
+        }
+        return $fileContent;
+    }
 }

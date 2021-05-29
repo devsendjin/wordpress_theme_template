@@ -29,15 +29,7 @@ const replace = require('gulp-replace');
 //server
 const browserSync = require('browser-sync').create();
 
-const {
-  ENV,
-  __DEV__,
-  __PROD__,
-  serverEnabled,
-  shouldOpenBrowser,
-  useGulpForJs,
-  terserOptions,
-} = require('./scripts.config')
+const buildConfig = require('./config')
 
 const paths = {
 	source_directory: '.',
@@ -47,8 +39,23 @@ const paths = {
 		return {
 			src: `${this.source_directory}/js/src`,
 			build: `${this.build_directory}/js/build`,
+      watch: `${this.source_directory}/js/src/**/*.js`,
+    }
+	},
+  get jsBundle() {
+		return {
+			src: this.js.src,
+			build: this.js.build,
+      watch: [`${this.js.src}/**/*.js`, `!${this.jsPages.watch}`],
 		}
 	},
+  get jsPages() {
+    return {
+      src: `${this.js.src}/pages/*.js`,
+      build: this.js.build,
+      watch: `${this.js.src}/pages/*.js`,
+    };
+  },
 	get scss() {
 		return {
 			src: `${this.source_directory}/scss`,
@@ -78,9 +85,9 @@ const removeEmptyLines = () => {
 
 const server = () => {
 	browserSync.init({
-		proxy: ENV.SITE_URL || 'http://test-wp.loc/',
+		proxy: buildConfig.SITE_URL || 'http://test-wp.loc/',
 		files: ['./**/*.php'],
-		open: shouldOpenBrowser,
+		open: buildConfig.shouldOpenBrowser,
 		notify: false,
     reloadOnRestart: true,
   });
@@ -94,7 +101,7 @@ const styles = () => {
 				this.end();
 			}
 		}))
-		.pipe(gulpIf(__DEV__, sourcemaps.init()))
+		.pipe(gulpIf(buildConfig.__DEV__, sourcemaps.init()))
 		.pipe(bulkSass())
 		.pipe(scss().on('error', scss.logError))
 		.pipe(postcss([
@@ -104,19 +111,19 @@ const styles = () => {
 				sort: 'desktop-first'
 			})
 		]))
-		.pipe(csso({ restructure: true }))
-		.pipe(gulpIf(!__PROD__, sourcemaps.write(paths.sourcemaps)))
-		.pipe(gulpIf(__PROD__, size({ showFiles: true, title: 'CSS' })))
+		.pipe(gulpIf(buildConfig.__PROD__, csso({ restructure: true })))
+		.pipe(gulpIf(!buildConfig.__PROD__, sourcemaps.write(paths.sourcemaps)))
+		.pipe(gulpIf(buildConfig.__PROD__, size({ showFiles: true, title: 'CSS' })))
 		.pipe(dest(paths.scss.build))
-		.pipe(gulpIf(serverEnabled, browserSync.stream()));
+		.pipe(gulpIf(buildConfig.serverEnabled, browserSync.stream()));
 }
 
 const scriptsBundle = () => {
 	return src([
-		`${paths.js.src}/common/config.js`,
-		`${paths.js.src}/vendor/jquery.min.js`,
-		`${paths.js.src}/vendor/jquery.magnific-popup.min.js`,
-		`${paths.js.src}/common/bundle.js`,
+		`${paths.jsBundle.src}/common/config.js`,
+		`${paths.jsBundle.src}/vendor/jquery.min.js`,
+		`${paths.jsBundle.src}/vendor/jquery.magnific-popup.min.js`,
+		`${paths.jsBundle.src}/common/bundle.js`,
 	])
 		.pipe(plumber({
 			errorHandler: function(err) {
@@ -124,37 +131,33 @@ const scriptsBundle = () => {
 				this.end();
 			}
 		}))
-		.pipe(gulpIf(__DEV__, sourcemaps.init()))
-		.pipe(gulpIf(__PROD__, babel({
-			presets: ['@babel/env']
-		})))
-		.pipe(gulpIf(__PROD__, terser(terserOptions)))
+		.pipe(gulpIf(buildConfig.__DEV__, sourcemaps.init()))
+		.pipe(gulpIf(buildConfig.__PROD__, babel(buildConfig.babelOptions)))
+		.pipe(gulpIf(buildConfig.__PROD__, terser(buildConfig.terserOptions)))
 		.pipe(concat('bundle.js'))
-		.pipe(gulpIf(__PROD__, removeEmptyLines()))
-		.pipe(gulpIf(!__PROD__, sourcemaps.write(paths.sourcemaps)))
-		.pipe(gulpIf(__PROD__, size({ showFiles: true, title: 'JS' })))
+		.pipe(gulpIf(buildConfig.__PROD__, removeEmptyLines()))
+		.pipe(gulpIf(!buildConfig.__PROD__, sourcemaps.write(paths.sourcemaps)))
+		.pipe(gulpIf(buildConfig.__PROD__, size({ showFiles: true, title: 'JS' })))
 		.pipe(dest(paths.js.build))
-		.pipe(gulpIf(serverEnabled, browserSync.stream()));
+		.pipe(gulpIf(buildConfig.serverEnabled, browserSync.stream()));
 }
 
 const scriptsPages = () => {
-	return src(`${paths.js.src}/pages/*.js`)
+	return src(paths.jsPages.src)
 		.pipe(plumber({
 			errorHandler: function(err) {
 				console.log('scriptsPages ', err.message);
 				this.end();
 			}
 		}))
-		.pipe(gulpIf(__DEV__, sourcemaps.init()))
-		.pipe(gulpIf(__PROD__, babel({
-			presets: ['@babel/env']
-		})))
-		.pipe(gulpIf(__PROD__, terser(terserOptions)))
-		.pipe(gulpIf(__PROD__, removeEmptyLines()))
-		.pipe(gulpIf(!__PROD__, sourcemaps.write(paths.sourcemaps)))
-		.pipe(gulpIf(__PROD__, size({ showFiles: true, title: 'JS' })))
+		.pipe(gulpIf(buildConfig.__DEV__, sourcemaps.init()))
+		.pipe(gulpIf(buildConfig.__PROD__, babel(buildConfig.babelOptions)))
+		.pipe(gulpIf(buildConfig.__PROD__, terser(buildConfig.terserOptions)))
+		.pipe(gulpIf(buildConfig.__PROD__, removeEmptyLines()))
+		.pipe(gulpIf(!buildConfig.__PROD__, sourcemaps.write(paths.sourcemaps)))
+		.pipe(gulpIf(buildConfig.__PROD__, size({ showFiles: true, title: 'JS' })))
 		.pipe(dest(paths.js.build))
-		.pipe(gulpIf(serverEnabled, browserSync.stream()));
+		.pipe(gulpIf(buildConfig.serverEnabled, browserSync.stream()));
 }
 
 const createSvgSprite = () => {
@@ -194,18 +197,28 @@ const createSvgSprite = () => {
 };
 
 const watchTask = () => {
-  if (useGulpForJs) {
+	watch(paths.scss.watch, styles);
+  if (buildConfig.useGulpForJs) {
     watch(`${paths.js.src}/common/*.js`, scriptsBundle);
     watch(`${paths.js.src}/pages/*.js`, scriptsPages);
+  } else {
+    watch(paths.js.watch).on("change", () =>
+      setTimeout(browserSync.reload, 300)
+    ); // reload while webpack bundling js
   }
-	watch(paths.scss.watch, styles);
 }
 
-const defaultTask = serverEnabled ? parallel(watchTask, server) : watchTask;
+const defaultTask = buildConfig.serverEnabled ? parallel(watchTask, server) : watchTask;
+
+const build = buildConfig.useGulpForJs
+  ? parallel(styles, scriptsBundle, scriptsPages)
+  : styles;
 
 task('default', defaultTask);
 task('server', server);
 task('sprite', createSvgSprite);
 task('css', styles);
-task('js', parallel(scriptsBundle, scriptsPages));
-task('build', useGulpForJs ? parallel(styles, scriptsBundle, scriptsPages) : styles);
+if (buildConfig.useGulpForJs) {
+  task('js', parallel(scriptsBundle, scriptsPages));
+}
+task('build', build);

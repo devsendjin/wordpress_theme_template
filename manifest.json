@@ -3,12 +3,12 @@
   "name": "site_url",
   "icons": [
     {
-      "src": "/wp-content/themes/theme_folder/images/favicons/favicon-196x196.png",
+      "src": "/web/app/themes/test/images/favicons/favicon-196x196.png",
       "type": "image/png",
       "sizes": "196x196"
     },
     {
-      "src": "/wp-content/themes/theme_folder/images/favicons/favicon-512x512.png",
+      "src": "/web/app/themes/test/images/favicons/favicon-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

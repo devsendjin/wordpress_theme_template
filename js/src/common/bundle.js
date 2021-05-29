@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    window.TEMPLATE_URI = document.body.dataset.siteUri + '/wp-content/themes/test/';
+    window.TEMPLATE_URI = `${document.body.dataset.siteUri}wp-content/themes/test/`;
 
     //lazyload support for background images:
     document.addEventListener('lazybeforeunveil', function (e) {
