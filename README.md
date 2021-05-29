@@ -1,9 +1,8 @@
 # Wordpress theme template
 
 ## If Wordpress bootstrapped with [bedrock](https://roots.io/bedrock/):
-1. remove `composer.json` and `composer.lock` files from theme folder
-2. go to project root
-3. run `composer require filp/whoops kint-php/kint --dev`
+1. go to project root
+2. run `composer require filp/whoops kint-php/kint --dev`
 
 * [The 7-1 Pattern](https://sass-guidelin.es/#the-7-1-pattern) - css architecture used in project.
 
@@ -16,7 +15,7 @@
 ## After clone template
 - navigate to theme folder
 - run `npm install`
-- run `composer install` (if Wordpress was not bootstrapped with [bedrock](https://roots.io/bedrock/))
+- run `composer require filp/whoops kint-php/kint --dev` (if Wordpress was not bootstrapped with [bedrock](https://roots.io/bedrock/))
   
 <br />
 
